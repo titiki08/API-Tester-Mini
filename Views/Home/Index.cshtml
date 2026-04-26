@@ -1,0 +1,139 @@
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="app-layout">
+    <!-- Sidebar Lịch sử -->
+    <aside class="sidebar panel">
+        <div class="sidebar-header">
+            <span class="sidebar-title">History</span>
+            <button type="button" id="clearHistoryBtn" class="clear-btn" title="Clear History">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+            </button>
+        </div>
+        <ul id="historyList" class="history-list">
+            <!-- Danh sách lịch sử sẽ được render bằng JS -->
+        </ul>
+    </aside>
+
+    <div class="workspace">
+    <!-- Khu vực cấu hình Request -->
+    <section class="request-panel panel">
+        <form id="apiForm" class="request-bar">
+            <div class="method-select-wrapper">
+                <select id="method" name="method" class="method-select" data-method="GET">
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="DELETE">DELETE</option>
+                    <option value="PATCH">PATCH</option>
+                </select>
+            </div>
+            <input type="url" id="url" name="url" class="url-input" placeholder="Enter request URL (e.g., https://api.example.com/data)" required />
+            <button type="submit" class="send-btn" id="sendBtn">
+                <span class="btn-text">Send</span>
+                <span class="loader hidden"></span>
+            </button>
+        </form>
+
+        <div class="tabs-container">
+            <div class="tabs-header">
+                <button type="button" class="tab-btn active" data-target="tab-params">Params</button>
+                <button type="button" class="tab-btn" data-target="tab-headers">Headers</button>
+                <button type="button" class="tab-btn" data-target="tab-body">Body</button>
+            </div>
+            
+            <div class="tab-content active" id="tab-params">
+                <div class="key-value-list" id="paramsList">
+                    <div class="key-value-row new-row">
+                        <input type="text" class="kv-key" placeholder="Key" />
+                        <input type="text" class="kv-value" placeholder="Value" />
+                        <button type="button" class="kv-delete" title="Delete">×</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-headers">
+                <div class="key-value-list" id="headersList">
+                    <div class="key-value-row">
+                        <input type="text" class="kv-key" placeholder="Key" value="Content-Type" />
+                        <input type="text" class="kv-value" placeholder="Value" value="application/json" />
+                        <button type="button" class="kv-delete" title="Delete">×</button>
+                    </div>
+                    <div class="key-value-row new-row">
+                        <input type="text" class="kv-key" placeholder="Key" />
+                        <input type="text" class="kv-value" placeholder="Value" />
+                        <button type="button" class="kv-delete" title="Delete">×</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="tab-body">
+                <div class="body-editor-wrapper">
+                    <div class="editor-header">
+                        <span class="editor-title">JSON Body</span>
+                        <button type="button" id="formatBodyBtn" class="format-btn" title="Format JSON">{} Format</button>
+                    </div>
+                    <textarea id="requestBody" class="code-editor" spellcheck="false" placeholder="Enter JSON body here..."></textarea>
+                    <div id="jsonError" class="json-error hidden">Invalid JSON</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Khu vực hiển thị Response -->
+    <section class="response-panel panel">
+        <div class="response-meta hidden" id="responseMeta">
+            <div class="meta-item status" id="resStatus">
+                <span class="meta-label">Status:</span>
+                <span class="meta-value">200 OK</span>
+            </div>
+            <div class="meta-item time" id="resTime">
+                <span class="meta-label">Time:</span>
+                <span class="meta-value">120 ms</span>
+            </div>
+            <div class="meta-item size" id="resSize">
+                <span class="meta-label">Size:</span>
+                <span class="meta-value">1.2 KB</span>
+            </div>
+        </div>
+
+        <div class="response-empty" id="responseEmpty">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <p>Enter a URL and click Send to get a response</p>
+        </div>
+
+        <div class="tabs-container response-data hidden" id="responseData">
+            <div class="tabs-header">
+                <button type="button" class="tab-btn active" data-target="res-body">Body</button>
+                <button type="button" class="tab-btn" data-target="res-headers">Headers</button>
+                <div style="flex: 1;"></div>
+                <button type="button" id="copyResponseBtn" class="copy-btn" title="Copy to clipboard">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: middle;">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                    Copy
+                </button>
+            </div>
+            
+            <div class="tab-content active" id="res-body">
+                <div class="code-container">
+                    <pre><code id="responseBodyCode" class="language-json"></code></pre>
+                </div>
+            </div>
+
+            <div class="tab-content" id="res-headers">
+                <div class="headers-display" id="responseHeadersDisplay">
+                    <!-- Headers sẽ được gen bằng JS -->
+                </div>
+            </div>
+        </div>
+    </section>
+    </div>
+</div>
